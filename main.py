@@ -3,6 +3,7 @@ import cv2
 import mediapipe as mp
 import numpy as np
 from keras.models import load_model
+import requests
 
 # Load the LSTM model and label mappings
 model_dict = pickle.load(open('./model_lstm.p', 'rb'))
@@ -13,6 +14,13 @@ index_to_label = model_dict['index_to_label']
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
+
+BaseURL = "http://192.168.8.28:80/"
+d_dictionary = {1: 'led1', 2: 'led2', 3: 'led3', 4: 'led4', 5: 'led5'}
+response = -1
+temp = -1
+labels_dict = {0: 'A', 1: 'B', 2: 'L', 3: 'V', 4: 'W'}
+
 
 hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
 
@@ -66,7 +74,17 @@ while True:
 
         # Predict with the LSTM model
         prediction = model.predict(data_aux)
-        predicted_label = index_to_label[np.argmax(prediction)]
+        predicted_label = labels_dict[index_to_label[np.argmax(prediction)]]
+
+        # send request to micro to do something
+        currentState = int(prediction[0]) + 1
+        if currentState != int(temp) & int(temp) != -1:
+            response = requests.get(url=BaseURL + d_dictionary[temp]).text
+
+        if int(response) != currentState:
+            response = requests.get(url=BaseURL + d_dictionary[currentState]).text
+            if int(response) != temp:
+                temp = int(response)
 
         # Draw prediction on frame
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 0), 4)
