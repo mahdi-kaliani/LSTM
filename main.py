@@ -15,7 +15,7 @@ mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 
-BaseURL = "http://192.168.8.28:80/"
+BaseURL = "http://192.168.175.233:80/"
 d_dictionary = {1: 'led1', 2: 'led2', 3: 'led3', 4: 'led4', 5: 'led5'}
 response = -1
 temp = -1
@@ -74,10 +74,10 @@ while True:
 
         # Predict with the LSTM model
         prediction = model.predict(data_aux)
-        predicted_label = labels_dict[index_to_label[np.argmax(prediction)]]
+        predicted_label = labels_dict[np.argmax(prediction)]
 
         # send request to micro to do something
-        currentState = int(prediction[0]) + 1
+        currentState = np.argmax(prediction) + 1
         if currentState != int(temp) & int(temp) != -1:
             response = requests.get(url=BaseURL + d_dictionary[temp]).text
 
